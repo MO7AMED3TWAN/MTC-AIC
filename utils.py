@@ -3,16 +3,20 @@ import os
 import tensorflow as tf
 from features_extraction import *
 
-def load_data(train_csv, train_audio_dir):
+def load_data(train_csv, train_audio_dir, adapt_csv, adapt_audio_dir):
     # Read CSV files into DataFrames
     train_df = pd.read_csv(train_csv)
+    adapt_df = pd.read_csv(adapt_csv)
 
     # Add audio_path column to DataFrames
     train_df['audio_path'] = train_df['audio'].apply(lambda x: os.path.join(train_audio_dir, x + '.wav'))
+    adapt_df['audio_path'] = adapt_df['audio'].apply(lambda x: os.path.join(adapt_audio_dir, x + '.wav'))
 
-    split = int(len(train_df) * 0.90)
+    split = int(len(train_df) * 0.80)
     df_train = train_df[:split]
     df_val   = train_df[split:]
+    # Here we add adapt data to the split sample that
+    # we get it from train File
 
     # Define the batch size.
     batch_size = 32
@@ -44,7 +48,3 @@ def load_data(train_csv, train_audio_dir):
     )
 
     return train_dataset, validation_dataset, df_train, df_val
-
-def create_output_dir(directory):
-    if not os.path.exists(directory):
-        os.makedirs(directory)

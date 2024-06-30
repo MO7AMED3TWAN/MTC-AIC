@@ -49,3 +49,35 @@ def encode_single_sample(wav_file, label):
 
     # 9. Return the spectrogram and label
     return spectrogram, label
+
+# Function to preprocess a single audio file
+def preprocess_audio(wav_file):
+    # 1. Read wav file
+    file = tf.io.read_file(wav_file)
+    # 2. Decode the wav file
+    audio, _ = tf.audio.decode_wav(file)
+    audio = tf.squeeze(audio, axis=-1)
+    # 3. Change type to float
+    audio = tf.cast(audio, tf.float32)
+    
+    # Check if the audio length is sufficient
+    if tf.shape(audio)[0] < fft_length:
+        # Pad the audio signal to have the minimum length
+        pad_amount = fft_length - tf.shape(audio)[0]
+        audio = tf.pad(audio, paddings=[[0, pad_amount]])
+    
+    # 4. Get the spectrogram
+    spectrogram = tf.signal.stft(
+        audio, frame_length=frame_length, frame_step=frame_step, fft_length=fft_length
+    )
+   
+    # 5. We only need the magnitude, which can be derived by applying tf.abs
+    spectrogram = tf.abs(spectrogram)
+    spectrogram = tf.math.pow(spectrogram, 0.5)
+   
+    # 6. Normalisation
+    means = tf.math.reduce_mean(spectrogram, 1, keepdims=True)
+    stddevs = tf.math.reduce_std(spectrogram, 1, keepdims=True)
+    spectrogram = (spectrogram - means) / (stddevs + 1e-10)
+    
+    return spectrogram

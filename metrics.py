@@ -3,17 +3,14 @@ from tensorflow import keras
 from tensorflow.keras.callbacks import ModelCheckpoint 
 from jiwer import wer
 import numpy as np
+from keras.utils import register_keras_serializable
 
-from utils import load_data
-from model import model
+
+# from utils import load_data
+# from model import model
 from features_extraction import num_to_char
 
-# Now, calling the load_data function
-train_csv = "./data/train.csv"  # Replace with the actual path to your CSV file
-train_audio_dir = "./data/train"  # Replace with the directory containing your audio files
-
-train_dataset, validation_dataset,_,_ = load_data(train_csv, train_audio_dir)
-
+@register_keras_serializable()
 def CTCLoss(y_true, y_pred):
     # Compute the training-time loss value
     batch_len = tf.cast(tf.shape(y_true)[0], dtype="int64")
@@ -74,13 +71,13 @@ def levenshtein_distance(y_true, y_pred):
     return distance[m % 2][n]
 
 
-# Define the checkpoint callback
-checkpoint_callback = ModelCheckpoint(
-    filepath='./Models/checkpoint_epoch_{epoch:02d}.h5',
-    save_weights_only=True,
-    save_freq='epoch',
-    verbose=1
-)
+# # Define the checkpoint callback
+# checkpoint_callback = ModelCheckpoint(
+#     filepath='./Models/checkpoint_epoch_{epoch:02d}.keras',
+#     save_weights_only=True,
+#     save_freq='epoch',
+#     verbose=1
+# )
 
 def decode_batch_predictions(pred):
     input_len = np.ones(pred.shape[0]) * pred.shape[1]
